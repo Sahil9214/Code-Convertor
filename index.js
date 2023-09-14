@@ -23,7 +23,7 @@ app.post("/convert", async (req, res) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${"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"}`,
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
