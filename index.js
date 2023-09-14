@@ -13,6 +13,7 @@ app.use(cors())
 app.post('/convert',async(req,res)=>{
     try {
         const {code,language}=req.body
+        console.log(code,language)
         const prompt=`convert this code ${code} into ${language} only convert the code not write any extra word`
         const response= await axios.post('https://api.openai.com/v1/chat/completions',{
             model:'gpt-3.5-turbo',
