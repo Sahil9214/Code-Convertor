@@ -23,7 +23,7 @@ app.post("/convert", async (req, res) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${CHATGPT_API_KEY}`,
+          Authorization: `Bearer ${"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"}`,
           "Content-Type": "application/json",
         },
       }
