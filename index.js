@@ -1,103 +1,55 @@
 const express = require("express");
 const axios = require("axios");
-require("dotenv").config();
-var cors = require("cors");
 const app = express();
-app.use(cors());
+const cors = require("cors");
+const { ConversionRouter } = require("./router/conversionRoute");
+require("dotenv").config();
+const PORT = process.env.PORT || 8080;
+const apiKey = process.env.OPENAI_API_KEY;
+
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
 app.use(express.json());
+app.use(cors());
 
-const CHATGPT_API_KEY = process.env.OPENAI_API_KEY;
+app.get("/", (req, res) => {
+  res.send("Home Page");
+});
 
-// API endpoint for code conversion
 app.post("/convert", async (req, res) => {
-  const { code, targetLanguage } = req.body;
   try {
-    // Call ChatGPT API for code conversion
+    const { code, language } = req.body;
 
-    const response = await axios.post(
-      "https://api.openai.com/v1/engines/text-davinci-003/completions",
-      {
-        prompt: `##### Translate this code snippet to ${targetLanguage}\n### \n    \n    ${code}    \n### ${targetLanguage}",`,
-        max_tokens: 150,
-        temperature: 1,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const apiUrl =
+      "https://api.openai.com/v1/engines/text-davinci-002/completions";
 
-    const convertedCode = response.data.choices[0].text.trim();
-    console.log(convertedCode);
-    res.json({ convertedCode });
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    };
+
+    const requestData = {
+      prompt: `Convert the following ${language} code:\n\n${code}\n\nTo:\n\n`,
+      max_tokens: 1000,
+    };
+
+    const response = await axios.post(apiUrl, requestData, { headers });
+
+    const convertedCode = response.data.choices[0].text;
+
+    res.status(200).send({ convertedCode });
   } catch (error) {
     console.error("Error converting code:", error);
-    res.status(500).json({ error: "Error converting code" });
+    res.status(400).json({ error: "Internal server error" });
   }
 });
 
-// Debug route
-app.post("/debug", async (req, res) => {
-  // Get the debug information from the request body
-  const { debugInfo } = req.body;
 
+app.listen(PORT, () => {
   try {
-    // Call ChatGPT API  for debugging the information
-    const response = await axios.post(
-      "https://api.openai.com/v1/engines/text-davinci-003/completions",
-      {
-        prompt: `Debug the following code:- ${debugInfo} \n  check if there is any error and  correct it. also if it's correct provide steps what code is doing and how we can improve it`,
-        max_tokens: 500,
-        temperature: 1,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${CHATGPT_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const output = response.data.choices[0].text.trim();
-    res.send({ output }); // Send the ChatGPT output as a JSON response
+    console.log(`Server running on port ${PORT}`);
   } catch (error) {
-    console.error("Error in debug:", error);
-    res.status(500).json({ error: "Error in debug" });
+    console.log(error);
   }
-});
-
-app.post("/quality", async (req, res) => {
-  // Get the debug information from the request body
-  const { code } = req.body;
-
-  try {
-    // Call ChatGPT API  for debugging the information
-    const response = await axios.post(
-      "https://api.openai.com/v1/engines/text-davinci-003/completions",
-      {
-        prompt: `Check the quality of the following code:-  ${code} \n ### \n please provide detailed info \n and also provide some tips to improve. provide in points `,
-        max_tokens: 500,
-        temperature: 1,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${CHATGPT_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const output = response.data.choices[0].text.trim();
-    res.send({ output }); // Send the ChatGPT output as a JSON response
-  } catch (error) {
-    console.error("Error in debug:", error);
-    res.status(500).json({ error: "Error in debug" });
-  }
-});
-
-// Start the server
-app.listen(8080, () => {
-  console.log("Server is running on port 8080");
 });
