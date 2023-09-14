@@ -23,7 +23,7 @@ app.post("/convert", async (req, res) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${"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"}`,
+          Authorization: `Bearer ${"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"}`,
           "Content-Type": "application/json",
         },
       }
